@@ -22,7 +22,8 @@ def run_full_training():
     # 2. Ingest without limit
     # Note: GSM8K train.jsonl has 7473 samples
     try:
-        count = gsm8k.ingest_jsonl(train_file, limit=None)
+        # 清空数据库，避免重复数据
+        count = gsm8k.ingest_jsonl(train_file, limit=None, clear_before=True)
         
         duration = time.time() - start_time
         print(f"\n✅ 全量训练完成！")

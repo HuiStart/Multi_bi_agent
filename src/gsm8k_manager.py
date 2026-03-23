@@ -6,10 +6,25 @@ class GSM8KManager:
     def __init__(self, kb_manager: KnowledgeBaseManager):
         self.kb_manager = kb_manager
 
-    def ingest_jsonl(self, file_path, limit=None, batch_size=100):
-        """Ingest GSM8K JSONL file into the knowledge base using batch processing."""
+    def ingest_jsonl(self, file_path, limit=None, batch_size=100, clear_before=False):
+        """
+        Ingest GSM8K JSONL file into the knowledge base using batch processing.
+
+        Args:
+            file_path: 输入文件路径
+            limit: 限制处理的条数 (None 表示全部)
+            batch_size: 批量处理的大小
+            clear_before: 是否在注入前清空数据库
+        """
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"GSM8K file not found at: {file_path}")
+
+        # 可选：清空数据库
+        if clear_before:
+            print("正在清空数据库...")
+            self.kb_manager.clear_database()
+
+        print(f"当前数据库文档数量：{self.kb_manager.get_document_count()}")
 
         contents = []
         count = 0

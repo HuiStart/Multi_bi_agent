@@ -62,3 +62,21 @@ class KnowledgeBaseManager:
             print(f"  Added {min(i + batch_size, len(splits))}/{len(splits)} chunks")
 
         return len(splits)
+
+    def clear_database(self):
+        """清空数据库中的所有数据。"""
+        try:
+            self.vector_store._collection.delete()
+            print("✅ 数据库已清空")
+            return True
+        except Exception as e:
+            print(f"❌ 清空数据库失败：{e}")
+            return False
+
+    def get_document_count(self):
+        """获取数据库中文档的总数。"""
+        try:
+            return self.vector_store._collection.count()
+        except Exception as e:
+            print(f"❌ 获取文档数量失败：{e}")
+            return 0
