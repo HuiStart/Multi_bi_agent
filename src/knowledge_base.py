@@ -47,3 +47,18 @@ class KnowledgeBaseManager:
         splits = self.text_splitter.split_documents([doc])
         self.vector_store.add_documents(splits)
         return len(splits)
+
+    def update_knowledge_batch(self, contents, batch_size=100):
+        """Batch update knowledge base for better performance."""
+        from langchain_core.documents import Document
+        docs = [Document(page_content=content, metadata={"source": source})
+                for content, source in contents]
+        splits = self.text_splitter.split_documents(docs)
+
+        # Add in batches
+        for i in range(0, len(splits), batch_size):
+            batch = splits[i:i + batch_size]
+            self.vector_store.add_documents(batch)
+            print(f"  Added {min(i + batch_size, len(splits))}/{len(splits)} chunks")
+
+        return len(splits)
