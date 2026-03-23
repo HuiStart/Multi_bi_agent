@@ -1,19 +1,34 @@
 from typing import List, Dict, Any
 from langchain_core.messages import SystemMessage, HumanMessage
 from .config import Config
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+import threading
 
 class BaseAgent:
-    def __init__(self, system_prompt: str, temperature: float = 0.3):
+    def __init__(self, system_prompt: str, temperature: float = 0.3, timeout=60):
         self.llm = Config.get_llm(temperature=temperature)
         self.system_prompt = system_prompt
+        self.timeout = timeout
+
+    def _invoke_llm(self, messages):
+        """LLM 调用"""
+        response = self.llm.invoke(messages)
+        return response.content
 
     def run(self, input_text: str, context: str = "") -> str:
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=f"Context: {context}\n\nInput: {input_text}")
         ]
-        response = self.llm.invoke(messages)
-        return response.content
+
+        # 使用线程池实现超时控制
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(self._invoke_llm, messages)
+            try:
+                return future.result(timeout=self.timeout)
+            except FuturesTimeoutError:
+                print(f"⚠️ Agent 调用超时（{self.timeout}秒），返回空结果")
+                return f"[超时] Agent 调用超时 ({self.timeout}s)"
 
 # 1. 总控调度智能体
 class TotalControlAgent(BaseAgent):
